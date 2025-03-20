@@ -11,7 +11,8 @@ import {
   Server,
   Brain,
   Sun,
-  Moon
+  Moon,
+  X
 } from 'lucide-react';
 
 function StudyTracker() {
@@ -20,6 +21,14 @@ function StudyTracker() {
     const savedTopics = localStorage.getItem('completedTopics');
     return savedTopics ? JSON.parse(savedTopics) : {};
   });
+
+  const [topicNotes, setTopicNotes] = useState(() => {
+    const savedNotes = localStorage.getItem('topicNotes');
+    return savedNotes ? JSON.parse(savedNotes) : {};
+  });
+
+  const [selectedTopic, setSelectedTopic] = useState(null);
+  const [noteText, setNoteText] = useState('');
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -30,6 +39,10 @@ function StudyTracker() {
   useEffect(() => {
     localStorage.setItem('completedTopics', JSON.stringify(completedTopics));
   }, [completedTopics]);
+
+  useEffect(() => {
+    localStorage.setItem('topicNotes', JSON.stringify(topicNotes));
+  }, [topicNotes]);
 
   useEffect(() => {
     if (isDarkMode) {
@@ -153,6 +166,25 @@ function StudyTracker() {
         [key]: !prev[key]
       };
     });
+    setSelectedTopic({ moduleId, topicId });
+    setNoteText(topicNotes[`${moduleId}-${topicId}`] || '');
+  };
+
+  const saveNote = () => {
+    if (selectedTopic) {
+      const key = `${selectedTopic.moduleId}-${selectedTopic.topicId}`;
+      setTopicNotes(prev => ({
+        ...prev,
+        [key]: noteText
+      }));
+      setSelectedTopic(null);
+      setNoteText('');
+    }
+  };
+
+  const closeNoteModal = () => {
+    setSelectedTopic(null);
+    setNoteText('');
   };
 
   const calculateProgress = (moduleId) => {
@@ -230,11 +262,54 @@ function StudyTracker() {
                     }`}
                   />
                   <span className="text-sm dark:text-white">{topic.name}</span>
+                  {topicNotes[`${module.id}-${topic.id}`] && (
+                    <span className="ml-auto text-xs text-blue-500 dark:text-blue-400">(Notes)</span>
+                  )}
                 </div>
               ))}
             </div>
           </div>
         ))}
+      </div>
+
+      {selectedTopic && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-lg w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold dark:text-white">Add Notes for Topic</h3>
+              <button
+                onClick={closeNoteModal}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <textarea
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              placeholder="Write your notes about this topic..."
+              className="w-full h-32 p-2 border rounded-lg mb-4 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={closeNoteModal}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveNote}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                Save Notes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+        {/* ... rest of your existing code ... */}
       </div>
     </div>
   );
