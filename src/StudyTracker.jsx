@@ -9,7 +9,9 @@ import {
   Database,
   GitBranch,
   Server,
-  Brain
+  Brain,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 function StudyTracker() {
@@ -19,10 +21,25 @@ function StudyTracker() {
     return savedTopics ? JSON.parse(savedTopics) : {};
   });
 
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  });
+
   // Save to localStorage whenever completedTopics changes
   useEffect(() => {
     localStorage.setItem('completedTopics', JSON.stringify(completedTopics));
   }, [completedTopics]);
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
   
   const modules = [
     {
@@ -153,21 +170,20 @@ function StudyTracker() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
+    <div className="max-w-4xl mx-auto p-4 dark:bg-gray-900 min-h-screen">
       <header className="mb-8">
-        <h1 className="text-2xl font-bold text-center mb-2">Computer Science Theory Study Tracker</h1>
         <div className="flex items-center justify-center gap-4">
-          <CalendarDays className="h-5 w-5 text-gray-600" />
-          <span className="text-sm text-gray-600">12-Week Plan</span>
+          <CalendarDays className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+          <span className="text-sm text-gray-600 dark:text-gray-400">12-Week Plan</span>
           
           <div className="ml-4 flex items-center gap-2">
-            <div className="w-48 h-3 bg-gray-200 rounded-full">
+            <div className="w-48 h-3 bg-gray-200 dark:bg-gray-700 rounded-full">
               <div 
                 className="h-full bg-blue-500 rounded-full" 
                 style={{ width: `${calculateTotalProgress()}%` }}
               ></div>
             </div>
-            <span className="text-sm font-semibold">{Math.round(calculateTotalProgress())}% Complete</span>
+            <span className="text-sm font-semibold dark:text-white">{Math.round(calculateTotalProgress())}% Complete</span>
           </div>
         </div>
       </header>
@@ -176,22 +192,22 @@ function StudyTracker() {
         {modules.map(module => (
           <div 
             key={module.id} 
-            className={`border rounded-lg p-4 ${module.color}`}
+            className={`border rounded-lg p-4 ${module.color} dark:bg-opacity-20 dark:border-gray-700`}
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 {module.icon}
-                <h2 className="text-lg font-semibold">{module.title}</h2>
-                <span className="text-xs bg-white px-2 py-1 rounded">{module.weeks}</span>
+                <h2 className="text-lg font-semibold dark:text-white">{module.title}</h2>
+                <span className="text-xs bg-white dark:bg-gray-800 dark:text-white px-2 py-1 rounded">{module.weeks}</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-24 h-2 bg-gray-200 rounded-full">
+                <div className="w-24 h-2 bg-gray-200 dark:bg-gray-700 rounded-full">
                   <div 
                     className="h-full bg-green-500 rounded-full" 
                     style={{ width: `${calculateProgress(module.id)}%` }}
                   ></div>
                 </div>
-                <span className="text-xs">{Math.round(calculateProgress(module.id))}%</span>
+                <span className="text-xs dark:text-white">{Math.round(calculateProgress(module.id))}%</span>
               </div>
             </div>
             
@@ -201,19 +217,19 @@ function StudyTracker() {
                   key={topic.id}
                   className={`p-2 rounded cursor-pointer flex items-center gap-2 transition-colors ${
                     completedTopics[`${module.id}-${topic.id}`] 
-                      ? 'bg-green-200' 
-                      : 'bg-white hover:bg-gray-100'
+                      ? 'bg-green-200 dark:bg-green-900' 
+                      : 'bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
                   onClick={() => toggleTopic(module.id, topic.id)}
                 >
                   <CheckCircle 
                     className={`h-4 w-4 ${
                       completedTopics[`${module.id}-${topic.id}`] 
-                        ? 'text-green-600' 
-                        : 'text-gray-300'
+                        ? 'text-green-600 dark:text-green-400' 
+                        : 'text-gray-300 dark:text-gray-500'
                     }`}
                   />
-                  <span className="text-sm">{topic.name}</span>
+                  <span className="text-sm dark:text-white">{topic.name}</span>
                 </div>
               ))}
             </div>
@@ -221,7 +237,6 @@ function StudyTracker() {
         ))}
       </div>
     </div>
-      
   );
 }
 
